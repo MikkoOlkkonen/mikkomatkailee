@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for sairaskuvaappi on 2024-12-13T22:41:49+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'sairaskuvaappi'
+primary_region = 'arn'
+
+[build]
+
+[env]
+  PORT = "80" # add this
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

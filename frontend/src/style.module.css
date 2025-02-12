@@ -1,0 +1,88 @@
+/* mentions */
+.mentions {
+    width: 100%;
+    margin: 5px;
+    margin-bottom: 0;
+    margin-top: 0;
+    outline: none;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  .mentions--singleLine .mentions__control {
+    padding: 10px;
+    max-width: calc(100vw - 65px);
+    outline: none;
+  }
+  .mentions--singleLine .mentions__highlighter {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    max-width: calc(100vw - 45px);
+    border-radius: 15px;
+    outline: none;
+  }
+  .mentions--singleLine .mentions__input {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    max-width: calc(100vw - 45px);
+    padding: 10px;
+    font-size: 12px;
+    outline: none;
+    overflow: hidden;
+  }
+  
+  .mentions--multiLine .mentions__control {
+    padding: 10px;
+    max-width: calc(100vw - 65px);
+    outline: none;
+  }
+  .mentions--multiLine .mentions__highlighter {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    max-width: calc(100vw - 45px);
+    border-radius: 15px;
+    outline: none;
+  }
+  .mentions--multiLine .mentions__input {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    max-width: calc(100vw - 45px);
+    padding: 10px;
+    font-size: 12px;
+    outline: none;
+    overflow: hidden; 
+  }
+  .mentions__suggestions__list {
+    position: relative;
+    bottom: 20px;
+    width: 650px;
+    height: 32px;
+    z-index: 10000;
+    background-color: transparent;
+    font-size: 10pt;
+    outline: none;
+    transform: translateY(20px);
+  }
+  .mentions__suggestions__item {
+    width: 650px;
+    padding: 5px 5px;
+    color: black;
+    background-color: blue;
+    outline: none;
+  }
+  .mentions__suggestions__item:not(:first-child) {
+    display: none; /* Hide all suggestions except the first */
+  }
+  .mentions__suggestions__item--focused {
+    width: 650px;
+    background-color: white;
+    color: black;
+    outline: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  }
+  .mentions__mention {
+    display: none;
+    z-index: 1;
+    color: blue;
+    text-decoration: none;
+    pointer-events: none;
+    outline: none;
+  }

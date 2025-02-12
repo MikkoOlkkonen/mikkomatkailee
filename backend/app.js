@@ -9,9 +9,9 @@ const pictureRouter = require('./controllers/pictures')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const subscribeRouter = require('./controllers/subscribe')
+const errorsRouter = require('./controllers/errors')
 
 if (process.env.NODE_ENV === 'test') {
-  console.log('vittu')
   const testingRouter = require('./controllers/testing')
   app.use('/api/testing', testingRouter)
 }
@@ -48,6 +48,7 @@ app.use('/api/pictures', pictureRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 app.use('/api/subscribe', subscribeRouter)
+app.use('/api/errors', errorsRouter)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

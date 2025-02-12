@@ -13,7 +13,7 @@ if (!admin.apps.length) {
 
 router.post('/', userExtractor, async (request, response) => {
   const { fcmtoken } = request.body;
-
+  
   try {
     // Subscribe the token to a topic
     const subscribeResponse = await admin.messaging().subscribeToTopic(fcmtoken, 'allUsers');

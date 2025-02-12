@@ -1,6 +1,6 @@
 const SearchUser = ({ user, setUserSelected, setIsProfileVisible }) => {
 
-  let profPicSrc = 'https://i.pravatar.cc/100'
+  let profPicSrc = '/icons/profpic.png'
   if (user && user.profilePicture && user.profilePicture.data) {
     profPicSrc = user.profilePicture.data
   }

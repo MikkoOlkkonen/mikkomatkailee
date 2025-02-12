@@ -15,6 +15,8 @@
     "axios": "^1.4.0",
     "browser-image-compression": "^2.0.2",
     "draft-js": "^0.11.7",
+    "draft-js-mention-plugin": "^3.1.5",
+    "draft-js-plugins-editor": "^3.0.0",
     "firebase": "^10.12.4",
     "firebase-admin": "^13.0.2",
     "mongodb": "^6.12.0",
@@ -23,6 +25,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-medium-image-zoom": "^5.2.13",
+    "react-mentions": "^4.4.10",
     "sharp": "^0.33.5"
   },
   "devDependencies": {

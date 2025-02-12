@@ -1,4 +1,4 @@
-const HomeButton = ({ setIsSearchVisible, setIsProfileVisible, handleCancel, setIsTopVisible, setUserSelected }) => {
+const HomeButton = ({ setIsSearchVisible, setIsProfileVisible, handleCancel, setIsTopVisible, setUserSelected, setListVisible }) => {
   return (
     <div style={{ width: '100%' }}>
       <button
@@ -16,6 +16,7 @@ const HomeButton = ({ setIsSearchVisible, setIsProfileVisible, handleCancel, set
           setIsProfileVisible(false)
           setIsTopVisible(true)
           setUserSelected(null)
+          setListVisible(false)
           handleCancel()
         }}>
         <div

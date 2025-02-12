@@ -3,14 +3,14 @@ import loginService from './services/login'
 import userService from './services/users'
 import pictureService from './services/pictures'
 import subscribeService from './services/subscribe'
-import Notification from './components/Notification'
+import errorService from './services/errors'
 import LoginForm from './components/loginForm'
 import SingupForm from './components/signupForm'
 import Picture from './components/Picture'
 import Toolbar from './components/Toolbar'
 import { messaging } from './firebase/firebase'
 import { getToken } from 'firebase/messaging'
-import PullToRefresh from 'pulltorefreshjs'
+
 
 const App = () => {
   const [pictures, setPictures] = useState([])
@@ -19,7 +19,7 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [loginVisible, setLoginVisible] = useState(false)
+  const [loginVisible, setLoginVisible] = useState(true)
   const [signupVisible, setSignupVisible] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -32,6 +32,10 @@ const App = () => {
   const [file, setFile] = useState(null)
   const [description, setDescription] = useState('')
   const [scrollCount, setScrollCount] = useState(0)
+  const [listVisible, setListVisible] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [picturesFetched, setPicturesFetched] = useState(false)
+  const [usersFetched, setUsersFetched] = useState(false)
 
   const fileInputRef = useRef(null)
   let mainRef = useRef(null)
@@ -56,24 +60,36 @@ const App = () => {
   */
 
   const requestNotificationPermission = async () => {
-    try {
-      const fcmtoken = await getToken(messaging, {
-        vapidKey: 'BHzqHg30NDwgJDX-7p04xx9g79wLkv0jtwRz7pClEjDsTKypXtflsuGqRILlEgWYTXZMsJuLPG_oBToiQDtNMbg',
-      })
-      if (fcmtoken) {
-        //console.log('FCM Token:', fcmtoken)
-        // Send the token to your backend to subscribe it to a topic
-        await subscribeService.subscribe(fcmtoken)
-      } else {
-        console.warn('No FCM token available.')
+    setScrollCount(prev => prev+1)
+    if (scrollCount === 0) {
+      try {
+        await errorService.alert(`Permission state, ${Notification.permission}`)
+        const permission = await Notification.requestPermission()
+        if (permission !== 'granted') {
+          console.warn(`Notification permission denied, ${permission}`)
+          await errorService.alert(`Notification permission denied, ${permission}`)
+          return
+        }
+        const fcmtoken = await getToken(messaging, {
+          vapidKey: 'BHzqHg30NDwgJDX-7p04xx9g79wLkv0jtwRz7pClEjDsTKypXtflsuGqRILlEgWYTXZMsJuLPG_oBToiQDtNMbg',
+        })
+        if (fcmtoken) {
+          //console.log('FCM Token:', fcmtoken)
+          // Send the token to your backend to subscribe it to a topic
+          await subscribeService.subscribe(fcmtoken)
+        } else {
+          console.warn('No FCM token available.')
+        }
+      } catch (error) {
+        console.error('Error getting FCM token:', error)
+        await errorService.alert(`error: ${error}`)
       }
-    } catch (error) {
-      console.error('Error getting FCM token:', error)
     }
   }
 
   useEffect(() => {
     if (user && navigator.onLine) {
+      setPicturesFetched(false)
       const fetchPictures = async () => {
         try {
           const fetchedPictures = await pictureService.getAll()
@@ -82,6 +98,8 @@ const App = () => {
           setTimeout(() => {
             setRetry((prev) => prev + 1)
           }, 1000)
+        } finally {
+          setPicturesFetched(true)
         }
       }
       fetchPictures()
@@ -90,6 +108,7 @@ const App = () => {
   //
   useEffect(() => {
     if (user && navigator.onLine) {
+      setUsersFetched(false)
       const fetchUsers = async () => {
         try {
           const fetchedUsers = await userService.getAll()
@@ -98,11 +117,19 @@ const App = () => {
           setTimeout(() => {
             setUserRetry((prev) => prev + 1)
           }, 1000)
+        } finally {
+          setUsersFetched(true)
         }
       }
       fetchUsers()
     }
   }, [user, userRetry])
+
+  useEffect(() => {
+    if (picturesFetched && usersFetched) {
+      setIsLoading(false)
+    }
+  }, [picturesFetched, usersFetched])
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedUser')
@@ -117,10 +144,6 @@ const App = () => {
 
   const handleScroll = async () => {
     if (mainRef.current) {
-      setScrollCount(prev => prev+1)
-      if (scrollCount === 1) {
-        await requestNotificationPermission()
-      }
       const currentScrollY = mainRef.current.scrollTop // Get current scroll position
       if (currentScrollY > lastScrollY && currentScrollY > 50 && !isBotVisible && !isProfileVisible && !isSearchVisible) {
         setIsVisible(false) // Hide on scroll down past 50px
@@ -249,6 +272,7 @@ const App = () => {
       setUsername('')
       setPassword('')
       setLoginVisible(false)
+      setSignupVisible(false)
     } catch (exception) {
       setErrorMessage('wrong username or password')
       setTimeout(() => {
@@ -294,13 +318,7 @@ const App = () => {
     const showWhenSignupVisible = { display: signupVisible ? '' : 'none' }
 
     return (
-      <div>
-        <div style={hideWhenLoginVisible}>
-          <button className='btn' style={{ marginBottom: '5px' }} onClick={() => setLoginVisible(true)}>log in</button>
-        </div>
-        <div style={hideWhenSignupVisible}>
-          <button className='btn' onClick={() => setSignupVisible(true)}>sign up</button>
-        </div>
+      <div style={{ borderRadius: '10px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)', padding: '20px' }}>
         <div style={showWhenLoginVisible}>
           <LoginForm
             username={username}
@@ -309,8 +327,16 @@ const App = () => {
             handlePasswordChange={({ target }) => setPassword(target.value)}
             handleSubmit={handleLogin}
           />
-          <button className='btn' onClick={() => setLoginVisible(false)}>cancel</button>
-        </div> &nbsp;
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+            <p>Don&apos;t have an account?</p>
+            <p
+              onClick={() => {
+                setLoginVisible(false)
+                setSignupVisible(true)
+              }}
+              style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}>Sign up now!</p>
+          </div>
+        </div>
         <div style={showWhenSignupVisible}>
           <SingupForm
             username={username}
@@ -318,8 +344,9 @@ const App = () => {
             handleUsernameChange={({ target }) => setUsername(target.value)}
             handlePasswordChange={({ target }) => setPassword(target.value)}
             handleSubmit={handleSignup}
+            setSignupVisible={setSignupVisible}
+            setLoginVisible={setLoginVisible}
           />
-          <button className='btn' onClick={() => setSignupVisible(false)}>cancel</button>
         </div>
       </div>
     )
@@ -332,6 +359,8 @@ const App = () => {
     handleCancel()
     window.localStorage.removeItem('loggedUser')
     setUser(null)
+    setLoginVisible(true)
+    setSignupVisible(false)
   }
 
   const handleRefresh = () => {
@@ -365,7 +394,6 @@ const App = () => {
           className={`fixed-top ${isVisible ? 'visible' : 'hidden'}`}
           style={{ padding: '0', cursor: 'pointer' }}>
           <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-            <Notification message={errorMessage} />
             <div className='card' style={{ width: '100%', height: '100%', borderRadius: '0' }}>
               <h1 style={{ margin: '0', padding: '0', display: 'flex', justifyContent: 'center', fontFamily: 'Yellowtail, cursive', textShadow: '0px 0px 0px rgba(0, 0, 0, 0.0)' }}>{'Mikko matkailee'}</h1>
               <span
@@ -383,9 +411,29 @@ const App = () => {
           </div>
         </div>
       }
-      {user &&
-        <div ref={mainRef} onScroll={handleScroll} className={`main ${(isSearchVisible || isProfileVisible) ? 'hidden' : 'visible' }`}>
-          <div className='pictures-container' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '80px' }}>
+      {(user && isLoading) &&
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <div className="dot-spinner">
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+            <div className="dot-spinner__dot"></div>
+          </div>
+        </div>
+      }
+      {(user && !isLoading) &&
+        <div
+          ref={mainRef}
+          onScroll={() => {
+            handleScroll()
+          }}
+          onClick={requestNotificationPermission}
+          className={`main ${(isSearchVisible || isProfileVisible) ? 'hidden' : 'visible' }`}>
+          <div className='pictures-container' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '75px' }}>
             {[...pictures]
               .sort((a, b) => new Date(b.file.uploadDate) - new Date(a.file.uploadDate))
               .map(picture =>
@@ -402,6 +450,9 @@ const App = () => {
                   setUserSelected={setUserSelected}
                   setIsProfileVisible={setIsProfileVisible}
                   deleteComment={deleteComment}
+                  users={users}
+                  profileviewMode={false}
+                  setListVisible={setListVisible}
                 />
               )}
           </div>
@@ -434,7 +485,6 @@ const App = () => {
           isBotVisible={isBotVisible}
           setIsBotVisible={setIsBotVisible}
           deleteComment={deleteComment}
-          requestNotificationPermission={requestNotificationPermission}
           file={file}
           setFile={setFile}
           description={description}
@@ -443,6 +493,8 @@ const App = () => {
           handleCancel={handleCancel}
           setRetry={setRetry}
           setUserRetry={setUserRetry}
+          listVisible={listVisible}
+          setListVisible={setListVisible}
         />
       }
     </div>

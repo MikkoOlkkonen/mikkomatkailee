@@ -3,14 +3,16 @@ const SingupForm = ({
   handleUsernameChange,
   handlePasswordChange,
   username,
-  password }) => {
+  password,
+  setSignupVisible,
+  setLoginVisible }) => {
   return (
     <div>
-      <h2>Signup</h2>
       <form onSubmit={handleSubmit}>
-        <div>
-          {'username '}
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: '5px' }}>
+          <span style={{ alignSelf: 'center' }}>new username</span>
           <input
+            style={{ display: 'block', alignSelf: 'center' }}
             className="input"
             data-testid='signupUsername'
             placeholder="Enter username"
@@ -18,10 +20,9 @@ const SingupForm = ({
             onChange={handleUsernameChange}
             enterKeyHint='Sign up'
           />
-        </div>
-        <div>
-          {'password '}
+          <span style={{ display: 'block', alignSelf: 'center' }}>new password</span>
           <input
+            style={{ alignSelf: 'center' }}
             className="input"
             data-testid='signupPassword'
             placeholder="Enter password"
@@ -31,7 +32,15 @@ const SingupForm = ({
             enterKeyHint='Sign up'
           />
         </div>
-        <button className='btn' type="submit">create</button>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+          <button className='btn' type="submit">create</button>
+          <button className='btn' onClick={() => {
+            setSignupVisible(false)
+            setLoginVisible(true)
+          }}>
+            cancel
+          </button>
+        </div>
       </form>
     </div>
   )

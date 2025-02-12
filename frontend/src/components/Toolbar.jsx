@@ -2,13 +2,11 @@ import ProfilePicture from './ProfilePicture'
 import LogoutButton from './LogoutButton'
 import PicPostView from './PicPostView'
 import UploadButton from './UploadButton'
-import { useState, useRef } from 'react'
 import imageCompression from 'browser-image-compression'
 import SearchButton from './SearchButton'
 import Search from './Search'
 import HomeButton from './HomeButton'
 import ProfileView from './ProfileView'
-import NotificationButton from './NotificationButton'
 
 const Toolbar = ({
   user,
@@ -35,7 +33,6 @@ const Toolbar = ({
   isBotVisible,
   setIsBotVisible,
   deleteComment,
-  requestNotificationPermission,
   file,
   setFile,
   description,
@@ -43,7 +40,9 @@ const Toolbar = ({
   fileInputRef,
   handleCancel,
   setRetry,
-  setUserRetry }) => {
+  setUserRetry,
+  listVisible,
+  setListVisible }) => {
 
   const handleButtonClick = () => {
     // Trigger the file input dialog
@@ -96,7 +95,9 @@ const Toolbar = ({
       return
     }
 
-    addPicture({ file, description })
+    const postDescription = description.replace(/@\[(.+?)\]\([\p{L}\p{N}_-]+\)/gu, '@$1')
+
+    addPicture({ file: file, description: postDescription })
     setFile(null)
     setDescription('')
     setIsBotVisible(false)
@@ -149,6 +150,11 @@ const Toolbar = ({
           deleteComment={deleteComment}
           setRetry={setRetry}
           setUserRetry={setUserRetry}
+          users={users}
+          currentUser={user}
+          addProfPic={addProfPic}
+          listVisible={listVisible}
+          setListVisible={setListVisible}
         />}
       </div>
       <div className={`slide-bottom ${isBotVisible ? 'visible' : 'hidden'}`}>
@@ -158,13 +164,16 @@ const Toolbar = ({
           setDescription={setDescription}
           handleCancel={handleCancel}
           file={file}
+          users={users}
         />
       </div>
       <div className='fixed-bottom' style={{ flexDirection: 'row', gap: '1px', padding: '0' }}>
         <ProfilePicture style={{ margin: '0', height: '100%' }}
           currentUser={user}
-          addProfPic={addProfPic}
+          setUserSelected={setUserSelected}
+          setIsProfileVisible={setIsProfileVisible}
           handleCancel={handleCancel}
+          setListVisible={setListVisible}
         />
         <HomeButton
           setIsSearchVisible={setIsSearchVisible}
@@ -172,6 +181,7 @@ const Toolbar = ({
           handleCancel={handleCancel}
           setIsTopVisible={setIsVisible}
           setUserSelected={setUserSelected}
+          setListVisible={setListVisible}
         />
         <UploadButton
           fileInputRef={fileInputRef}

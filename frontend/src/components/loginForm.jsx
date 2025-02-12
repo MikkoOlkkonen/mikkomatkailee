@@ -8,12 +8,11 @@ const LoginForm = ({
   password }) => {
   return (
     <div>
-      <h2>Login</h2>
-
       <form onSubmit={handleSubmit}>
-        <div>
-          {'username '}
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto auto' }}>
+          <span style={{ display: 'block', alignSelf: 'center' }}>username</span>
           <input
+            style={{ display: 'block', alignSelf: 'center' }}
             className='input'
             data-testid='loginUsername'
             placeholder='Enter username'
@@ -21,10 +20,9 @@ const LoginForm = ({
             onChange={handleUsernameChange}
             enterKeyHint='Log in'
           />
-        </div>
-        <div>
-          {'password '}
+          <span style={{ display: 'block', alignSelf: 'center' }}>password</span>
           <input
+            style={{ display: 'block', alignSelf: 'center' }}
             className='input'
             data-testid='loginPassword'
             placeholder='Enter password'

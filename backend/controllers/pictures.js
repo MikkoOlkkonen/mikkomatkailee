@@ -21,7 +21,6 @@ router.get('/', async (request, response) => {
   const pictures = await Picture.find({})
     .populate('user', { username: 1, name: 1, _id: 1, profilePicture: 1 })
     .populate('comments.user', { username: 1, name: 1, _id: 1, profilePicture: 1 })
-  console.log(pictures)
   const combinedData = files.map(file => {
     const picture = pictures.find(p => p.fileId && p.fileId.toString() === file._id.toString())
     return {
@@ -82,11 +81,32 @@ router.post('/', userExtractor, upload.single('file'), async (request, response)
   user.pictures = user.pictures.concat(picture._id)
   const savedPicture = await picture.save()
 
-  sendNotification(
-    'New post!',
-    `${user.username} just posted a new picture`,
-    'allUsers'
-  )
+  try {
+    sendNotification(
+      'New post!',
+      `${user.username} just posted a new picture`,
+      'allUsers'
+    )
+    if (request.body.description) {
+      request.body.description.split(/(@\[.*?\]\(.*?\))/g).map((part, index) => {
+        const match = part.match(/@\[(.*?)\]\(.*?\)/)
+        if (match) {
+          const displayName = match[1]
+          if (user.username !== displayName) {
+            sendNotification(
+              'You were mentioned in a post!',
+              `${user.username} mentioned you in a post`,
+              `${displayName}`
+            )
+          }
+        }
+        return part
+      })
+    }
+  } catch (error) {
+    console.error('Notification error:', error)
+  }
+  
 
   response.status(201).json({
     file: file,
@@ -177,11 +197,33 @@ router.put('/:id/comments', userExtractor, async (request, response) => {
 
   const updatedPicture = await picture.save()
 
-  sendNotification(
-    'New comment!',
-    `${user.username} just commented on your post`,
-    `${pictureUser.username}`
-  )
+  try {
+    if (user.username !== pictureUser.username) {
+      sendNotification(
+        'New comment!',
+        `${user.username} just commented on your post`,
+        `${pictureUser.username}`
+      )
+    }
+    if (request.body.comment) {
+      request.body.comment.split(/(@\[.*?\]\(.*?\))/g).map((part, index) => {
+        const match = part.match(/@\[(.*?)\]\(.*?\)/)
+        if (match) {
+          const displayName = match[1]
+          if (user.username !== displayName && displayName !== pictureUser.username) {
+            sendNotification(
+              'You were mentioned in a comment!',
+              `${user.username} mentioned you in a comment`,
+              `${displayName}`
+            )
+          }
+        }
+        return part
+      })
+    }
+  } catch (error) {
+    console.error('Notification error:', error)
+  }
 
   const populatedPicture = await Picture.findById(updatedPicture._id)
     .populate('user', { username: 1, name: 1, _id: 1, profilePicture: 1 })

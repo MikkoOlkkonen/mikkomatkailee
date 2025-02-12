@@ -1,60 +1,29 @@
 import React, { useState, useRef } from 'react'
 import imageCompression from 'browser-image-compression'
 
-const ProfilePicture = ({ currentUser, addProfPic, handleCancel }) => {
+const ProfilePicture = ({
+  currentUser,
+  setUserSelected,
+  setIsProfileVisible,
+  handleCancel,
+  setListVisible }) => {
   const fileInputRef = useRef(null)
-  let profPicSrc = 'https://i.pravatar.cc/100'
+  let profPicSrc = '/icons/profpic.png'
   if (currentUser && currentUser.profilePicture && currentUser.profilePicture.data) {
     profPicSrc = currentUser.profilePicture.data
   }
 
-  const handleButtonClick = () => {
-    // Trigger the file input dialog
+  const handleProfileClick = () => {
     handleCancel()
-    fileInputRef.current.click()
+    setUserSelected(null)
+    setUserSelected(currentUser)
+    setIsProfileVisible(true)
+    setListVisible(false)
+    document.getElementById('profileviewPicturesContainer').scrollTop = 0
   }
-
-  const handleFileChange = async (event) => {
-    event.preventDefault()
-    const file = event.target.files[0]
-    if (file) {
-      try {
-        console.log('File selected:', file.name)
-        const options = {
-          maxSizeMB: 0.1,
-          maxWidthOrHeight: 100,
-          useWebWorker: true,
-          fileType: 'image/png',
-        }
-        const compressedFile = await imageCompression(file, options)
-        console.log('Original size:', file.size / 1024, 'KB')
-        console.log('Compressed size:', compressedFile.size / 1024, 'KB')
-        if (!(compressedFile instanceof Blob)) {
-          const blob = new Blob([compressedFile], { type: 'image/png' })
-          await addProfPic({ file: blob, currentUser })
-        } else {
-          await addProfPic({ file: compressedFile, currentUser })
-        }
-      } catch (error) {
-        console.error('Error compressing the file: ', error)
-      }
-    }
-    else {
-      console.log('Error reading the file')
-    }
-    fileInputRef.current.value = null
-  }
-
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
       <button
         className='toolbarbtn'
         style={{
@@ -66,7 +35,7 @@ const ProfilePicture = ({ currentUser, addProfPic, handleCancel }) => {
           justifyContent: 'center',
           alignItems: 'center'
         }}
-        onClick={handleButtonClick}>
+        onClick={handleProfileClick}>
         <img
           src={profPicSrc}
           alt='?'

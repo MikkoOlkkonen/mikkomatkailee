@@ -1,4 +1,15 @@
-const Comment = ({ currentUser, comment, picture, onLike, onDislike, setIsProfileVisible, setUserSelected, deleteComment }) => {
+const Comment = ({
+  currentUser,
+  comment,
+  picture,
+  onLike,
+  onDislike,
+  setIsProfileVisible,
+  setUserSelected,
+  deleteComment,
+  users,
+  setListVisible }) => {
+
   const isoDate = comment.createdAt
   const date = new Date(isoDate)
 
@@ -26,17 +37,39 @@ const Comment = ({ currentUser, comment, picture, onLike, onDislike, setIsProfil
     }
 
     const weeksAgo = Math.floor(daysAgo / 7)
-    if (weeksAgo < 4) {
+    if (weeksAgo <= 4) {
       return `${weeksAgo} weeks ago`
     }
 
     const monthsAgo = Math.floor(daysAgo / 30)
-    if (monthsAgo < 12) {
+    if (monthsAgo < 12 && monthsAgo > 0) {
       return `${monthsAgo} months ago`
     }
 
     const yearsAgo = Math.floor(daysAgo / 365)
     return `${yearsAgo} years ago`
+  }
+
+  const parseComment = (wholetext) => {
+    const regex = /@([\p{L}\p{N}_]+)/gu
+    const parts = wholetext.match(/[^@]+|@[\p{L}\p{N}_]+/gu) // Match text segments (either @username or non-mention parts)
+    return parts.map((part, index) => {
+      // Check if the part matches a mention (i.e., starts with '@')
+      if (part.startsWith('@')) {
+        const displayName = part.slice(1) // Remove '@' to get the username
+        return (
+          <span
+            onClick={() => handleMentionClick(displayName)}
+            key={index}
+            style={{ color: 'blue', cursor: 'pointer' }}
+          >
+            {part}
+          </span>
+        )
+      }
+      // Return non-mention part as plain text
+      return part
+    })
   }
 
   const formattedDate = timeAgo(date)
@@ -46,34 +79,56 @@ const Comment = ({ currentUser, comment, picture, onLike, onDislike, setIsProfil
     imagesrc = comment.user.profilePicture.data
   }
   else {
-    imagesrc = 'https://i.pravatar.cc/100'
+    imagesrc = '/icons/profpic.png'
   }
 
   const handleProfileClick = () => {
     setUserSelected(null)
     setUserSelected(comment.user)
     setIsProfileVisible(true)
+    setListVisible(false)
+    const element = document.getElementById('profileviewPicturesContainer')
+    if (element) {
+      element.scrollTop = 0
+    }
+  }
+
+  const handleMentionClick = (displayName) => {
+    const mentionedUser = users.find(user => user.username === displayName)
+    if (mentionedUser) {
+      setUserSelected(null)
+      setUserSelected(mentionedUser)
+      setIsProfileVisible(true)
+      setListVisible(false)
+      const element = document.getElementById('profileviewPicturesContainer')
+      if (element) {
+        element.scrollTop = 0
+      }
+    }
   }
 
   return (
     <div className="blog" style={{ padding: '5px', margin: '0', boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)', fontSize: '14px' }}>
       <div
         style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-        <img
+        <div
           onClick={handleProfileClick}
-          src={imagesrc}
-          alt='?'
-          style={{ width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            display: 'block',
-            boxShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
-            cursor: 'pointer'
-          }}
-        /> &nbsp;
-        <strong style={{ marginRight: '5px' }}>{comment.user && comment.user.username}</strong> {formattedDate}
+          style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', cursor: 'pointer' }}>
+          <img
+            src={imagesrc}
+            alt='?'
+            style={{ width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              display: 'block',
+              boxShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
+              cursor: 'pointer'
+            }}
+          /> &nbsp;
+          <strong style={{ marginRight: '5px' }}>{comment.user && comment.user.username}</strong> {formattedDate}
+        </div>
         {currentUser.username.toString() === comment.user.username.toString() &&
           <div
             style={{
@@ -91,7 +146,7 @@ const Comment = ({ currentUser, comment, picture, onLike, onDislike, setIsProfil
           </div>
         }
       </div>
-      {comment.comment}
+      {parseComment(comment.comment)}
       <br/>
       <div style={{ padding: '5px', paddingBottom: '10px', margin: '0', display: 'flex', alignItems: 'center', flexDirection: 'row' }}>
         <span>{comment.likes} </span> &nbsp;

@@ -19,7 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 const messaging = getMessaging(app)
-/*
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
     .then((registration) => {
@@ -29,5 +29,5 @@ if ('serviceWorker' in navigator) {
       console.error('Service Worker registration failed:', error)
     })
 }
-*/
+
 export { app, messaging }

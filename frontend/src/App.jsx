@@ -36,6 +36,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [picturesFetched, setPicturesFetched] = useState(false)
   const [usersFetched, setUsersFetched] = useState(false)
+  const [position, setPosition] = useState(0)
 
   const fileInputRef = useRef(null)
   let mainRef = useRef(null)
@@ -189,6 +190,7 @@ const App = () => {
       const formData = new FormData()
       formData.append('file', pictureObject.file)
       formData.append('description', pictureObject.description)
+      formData.append('position', pictureObject.imagePosition)
       const returnedPicture = await pictureService.create(formData)
       setPictures(pictures.concat(returnedPicture))
     } catch (error) {
@@ -372,6 +374,7 @@ const App = () => {
     setDescription('')
     setIsBotVisible(false)
     fileInputRef.current.value = null
+    setPosition(0)
   }
 
   return (
@@ -495,6 +498,8 @@ const App = () => {
           setUserRetry={setUserRetry}
           listVisible={listVisible}
           setListVisible={setListVisible}
+          position={position}
+          setPosition={setPosition}
         />
       }
     </div>

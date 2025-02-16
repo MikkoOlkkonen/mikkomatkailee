@@ -94,11 +94,13 @@ const ProfileView = ({
   }
 
   const switchToGrid = () => {
-    setListVisible(false)
     document.getElementById('profileviewPicturesContainer').scrollTop = 0
+    setIsTopVisible(true)
+    setListVisible(false)
   }
 
   const switchToList = () => {
+    setIsTopVisible(false)
     setListVisible(true)
     document.getElementById('profileviewPicturesContainer').scrollTop = 0
   }

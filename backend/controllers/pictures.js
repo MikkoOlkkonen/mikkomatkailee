@@ -75,6 +75,7 @@ router.post('/', userExtractor, upload.single('file'), async (request, response)
     user: user,
     fileId: file.id, // ID of the file in GridFS
     description: request.body.description,
+    position: Number(request.body.position),
     likers: [],
     comments: [],
   })
@@ -82,11 +83,13 @@ router.post('/', userExtractor, upload.single('file'), async (request, response)
   const savedPicture = await picture.save()
 
   try {
+
     sendNotification(
       'New post!',
       `${user.username} just posted a new picture`,
       'allUsers'
     )
+
     if (request.body.description) {
       request.body.description.split(/(@\[.*?\]\(.*?\))/g).map((part, index) => {
         const match = part.match(/@\[(.*?)\]\(.*?\)/)

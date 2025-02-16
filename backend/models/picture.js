@@ -6,6 +6,7 @@ const pictureSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     fileId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Reference to GridFS
     description: String,
+    position: Number,
     likers: [
         {
             type: String

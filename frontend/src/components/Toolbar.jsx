@@ -7,6 +7,8 @@ import SearchButton from './SearchButton'
 import Search from './Search'
 import HomeButton from './HomeButton'
 import ProfileView from './ProfileView'
+import { useState } from 'react'
+import { use } from 'react'
 
 const Toolbar = ({
   user,
@@ -42,7 +44,10 @@ const Toolbar = ({
   setRetry,
   setUserRetry,
   listVisible,
-  setListVisible }) => {
+  setListVisible,
+  position,
+  setPosition }) => {
+
 
   const handleButtonClick = () => {
     // Trigger the file input dialog
@@ -66,6 +71,7 @@ const Toolbar = ({
         setFile(compressedFile)
         setIsBotVisible(true)
         setIsVisible(true)
+        setPosition(0)
       } catch (error) {
         setErrorMessage('Error compressing the file')
         console.error('Error compressing the file: ', error)
@@ -83,7 +89,7 @@ const Toolbar = ({
     fileInputRef.current.value = null
   }
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event, imagePosition) => {
     event.preventDefault()
 
     if (!file) {
@@ -97,10 +103,11 @@ const Toolbar = ({
 
     const postDescription = description.replace(/@\[(.+?)\]\([\p{L}\p{N}_-]+\)/gu, '@$1')
 
-    addPicture({ file: file, description: postDescription })
+    addPicture({ file: file, description: postDescription, imagePosition: imagePosition })
     setFile(null)
     setDescription('')
     setIsBotVisible(false)
+    setPosition(0)
   }
 
   return (
@@ -165,9 +172,11 @@ const Toolbar = ({
           handleCancel={handleCancel}
           file={file}
           users={users}
+          position={position}
+          setPosition={setPosition}
         />
       </div>
-      <div className='fixed-bottom' style={{ flexDirection: 'row', gap: '1px', padding: '0' }}>
+      <div className='fixed-bottom' style={{ flexDirection: 'row', gap: '1px', padding: '0', zIndex: '2000' }}>
         <ProfilePicture style={{ margin: '0', height: '100%' }}
           currentUser={user}
           setUserSelected={setUserSelected}

@@ -19,7 +19,10 @@ const ProfilePicture = ({
     setUserSelected(currentUser)
     setIsProfileVisible(true)
     setListVisible(false)
-    document.getElementById('profileviewPicturesContainer').scrollTop = 0
+    const element = document.getElementById('profileviewPicturesContainer')
+    if (element) {
+      element.scrollTop = 0
+    }
   }
 
   return (

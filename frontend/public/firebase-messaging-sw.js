@@ -19,10 +19,7 @@ firebase.initializeApp(firebaseConfig)
 const messaging = firebase.messaging()
 
 messaging.onBackgroundMessage((payload) => {
-  //console.log('heiheihei')
   console.log('Received background message ', payload)
-  //console.log('title: ', payload.notification.title)
-  //console.log('body: ', payload.notification.body)
   const notificationTitle = payload.notification.title
   const notificationOptions = {
     body: payload.notification.body,
@@ -30,5 +27,4 @@ messaging.onBackgroundMessage((payload) => {
   }
 
   self.registration.showNotification(notificationTitle, notificationOptions)
-  //console.log('moi')
 })

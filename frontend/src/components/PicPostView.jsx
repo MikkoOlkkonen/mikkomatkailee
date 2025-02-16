@@ -2,8 +2,54 @@ import { MentionsInput, Mention } from 'react-mentions'
 import mentionstyle from '../style.module.css'
 import { useState, useRef } from 'react'
 
-const PicPostView = ({ handleSubmit, description, setDescription, handleCancel, file, users }) => {
+const PicPostView = ({ handleSubmit, description, setDescription, handleCancel, file, users, position, setPosition }) => {
+  const [imageHeightDiff, setImageHeightDiff] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDragging, setIsDragging] = useState(false)
+  const startY = useRef(0)
+  const currentPosition = useRef(0)
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true)
+    startY.current = e.touches ? e.touches[0].clientY : e.clientY
+    currentPosition.current = position
+  }
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY
+    const deltaY = clientY - startY.current
+    let newPosition = currentPosition.current + deltaY
+
+    // Limit scrolling within bounds (adjust limits as needed)
+    newPosition = Math.max(-imageHeightDiff, Math.min(imageHeightDiff, newPosition))
+    if (newPosition < 0) {
+      setPosition(newPosition)
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const loadImage = (event) => {
+    setIsLoading(false)
+    const maxHeight = Math.min(window.innerWidth * 1.2, 780)
+
+    const naturalWidth = event.target.naturalWidth
+    const naturalHeight = event.target.naturalHeight
+    const aspectRatio = naturalHeight / naturalWidth
+
+    const imageHeight = window.innerWidth * aspectRatio
+
+    if (imageHeight > maxHeight) {
+      setImageHeightDiff(imageHeight - maxHeight)
+      return
+    }
+    setImageHeightDiff(0)
+  }
+
+
   const mentionUsers = users.map((user) => ({ id: user.id, display: user.username, avatar: user.profilePicture }))
 
   const mentionsContainerRef = useRef(null)
@@ -27,19 +73,39 @@ const PicPostView = ({ handleSubmit, description, setDescription, handleCancel, 
       }}>
       {file &&
         <div>
-          <img
+          <div
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleMouseDown}  // Touch support
+            onTouchMove={handleMouseMove}    // Touch support
+            onTouchEnd={handleMouseUp}
             style={{
+              display: 'flex',
               width: '100%',
               maxHeight: 'min(120vw, 780px)',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              display: 'block',
-              paddingTop: '3px'
-            }}
-            src={blobUrl}
-            alt='?'
-            onLoad={() => setIsLoading(false)}
-          />
+              userSelect: 'none',
+              overflow: 'hidden',
+              position: 'relative',
+              cursor: isDragging ? 'grabbing' : 'grab'
+            }}>
+            <img
+              style={{
+                top:'0',
+                width: '100%',
+                height: 'auto',
+                objectFit: 'cover',
+                objectPosition: `center ${position}px`,
+                display: 'block',
+                userSelect: 'none',
+              }}
+              src={blobUrl}
+              alt='?'
+              onLoad={loadImage}
+              onDragStart={(event) => event.preventDefault()}
+            />
+          </div>
           {(isLoading) &&
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'min(120vw, 650px)', width: '100%' }}>
               <div className="dot-spinner">
@@ -99,7 +165,13 @@ const PicPostView = ({ handleSubmit, description, setDescription, handleCancel, 
           />
         </MentionsInput>
         <div
-          onClick={handleSubmit}
+          onClick={(event) => {
+            if (position === 0) {
+              console.log(position)
+              setPosition(0)
+            }
+            handleSubmit(event, position)
+          }}
           style={{ display: 'block', lineHeight: '30px', fontSize: '30px', marginRight: '5px', cursor: 'pointer' }}>
           ⬆️
         </div>

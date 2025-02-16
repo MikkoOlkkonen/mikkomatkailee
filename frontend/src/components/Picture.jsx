@@ -19,6 +19,7 @@ const Picture = ({
   profileviewMode,
   setListVisible }) => {
 
+  const [allComments, setAllComments] = useState(false)
   const [isImageLoading, setIsImageLoading] = useState(true)
   const [newComment, setNewComment] = useState('')
   const [mentionUsers, setMentionUsers] = useState(users.map((user) => ({ id: user.id, display: user.username, avatar: user.profilePicture })))
@@ -31,6 +32,12 @@ const Picture = ({
   let zindex = 'auto'
   if (profileviewMode) {
     zindex = 'auto'
+  }
+
+  let imagePosition = 'center'
+
+  if (picture.metadata.position || picture.metadata.position === 0) {
+    imagePosition = `center ${picture.metadata.position}px`
   }
 
   let username = ''
@@ -196,18 +203,31 @@ const Picture = ({
         }
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', margin: '0', flexDirection: 'column' }}>
-        <img
-          src={imageSrc}
-          alt={picture.file.filename}
+        <div
           style={{
+            display: 'flex',
             width: '100%',
             maxHeight: 'min(120vw, 780px)',
-            display: 'block',
-            objectFit: 'cover',
-            objectPosition: 'center',
-          }}
-          onLoad={() => setIsImageLoading(false)}
-        />
+            userSelect: 'none',
+            overflow: 'hidden',
+            position: 'relative',
+          }}>
+          <img
+            src={imageSrc}
+            alt={picture.file.filename}
+            style={{
+              top:'0',
+              width: '100%',
+              height: 'auto',
+              objectFit: 'cover',
+              objectPosition: imagePosition,
+              display: 'block',
+              userSelect: 'none',
+            }}
+            onLoad={() => setIsImageLoading(false)}
+            onDragStart={(event) => event.preventDefault()}
+          />
+        </div>
         {(isImageLoading) &&
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'min(120vw, 650px)', width: '100%' }}>
             <div className="dot-spinner">
@@ -223,52 +243,69 @@ const Picture = ({
           </div>
         }
       </div>
-      <div style={{ padding: '5px', margin: '0', display: 'flex', alignItems: 'center', flexDirection: 'row', boxShadow: '0px 1px 1px rgba(0, 0, 0, 0.1)' }}>
-        <span>{picture.metadata.likes} </span> &nbsp;
-        <div
-          style={{
-            marginTop: '5px',
-            fontSize: '21px',
-            lineHeight: '21px',
-            display: 'block',
-            cursor: 'pointer',
-            marginRight: '10px  '
-          }}
-          onClick={() => onLike(picture)}>
-          {picture.metadata.likers.includes(currentUser.username) &&
-            <span
-              style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)', display: 'block' }}>
-              👍🏽
-            </span>}
-          {!picture.metadata.likers.includes(currentUser.username) &&
-            <span
-              style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)', display: 'block' }}>
-              👍
-            </span>}
-        </div> &nbsp;
-        <span> {picture.metadata.dislikes} </span> &nbsp;
-        <div
-          style={{
-            marginTop: '5px',
-            fontSize: '21px',
-            lineHeight: '21px',
-            display: 'block',
-            cursor: 'pointer',
-            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={() => onDislike(picture)}>
-          👎
+      <div style={{ padding: '5px', margin: '0', display: 'flex', alignItems: 'center', flexDirection: 'row', boxShadow: '0px 1px 1px rgba(0, 0, 0, 0.1)', gap: '15px' }}>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <span style={{ marginRight: '5px', display: 'block' }}>{picture.metadata.likes} </span>
+          <div
+            style={{
+              marginTop: '5px',
+              fontSize: '21px',
+              lineHeight: '21px',
+              display: 'block',
+              cursor: 'pointer',
+            }}
+            onClick={() => onLike(picture)}>
+            {picture.metadata.likers.includes(currentUser.username) &&
+              <span
+                style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)', display: 'block' }}>
+                👍🏽
+              </span>}
+            {!picture.metadata.likers.includes(currentUser.username) &&
+              <span
+                style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)', display: 'block' }}>
+                👍
+              </span>}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <span style={{ marginRight: '5px', display: 'block' }}> {picture.metadata.dislikes} </span>
+          <div
+            style={{
+              marginTop: '5px',
+              fontSize: '21px',
+              lineHeight: '21px',
+              display: 'block',
+              cursor: 'pointer',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={() => onDislike(picture)}>
+            👎
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <span style={{ marginRight: '5px', display: 'block' }}> {picture.metadata.comments.length} </span>
+          <div
+            style={{
+              marginTop: '5px',
+              fontSize: '21px',
+              lineHeight: '21px',
+              display: 'block',
+              cursor: 'pointer',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
+            }}>
+            💬
+          </div>
         </div>
       </div>
       {picture.metadata.description && <div className='text' style={{ padding: '5px 5px', paddingBottom: '10px', boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)' }}>
         {parseComment(picture.metadata.description)}
       </div>}
-      <div style={{ margin: 0 }}>
-        {picture.metadata.comments.map(comment =>
+      {(!allComments && picture.metadata.comments.length > 0) &&
+        <div style={{ margin: '0', display: 'flex', flexDirection: 'column' }}>
           <Comment
-            key={comment._id}
+            key={picture.metadata.comments[0]._id}
             currentUser={currentUser}
-            comment={comment}
+            comment={picture.metadata.comments[0]}
             picture={picture}
             onLike={onCommentLike}
             onDislike={onCommentDislike}
@@ -278,8 +315,39 @@ const Picture = ({
             users={users}
             setListVisible={setListVisible}
           />
-        )}
-      </div>
+          {(picture.metadata.comments.length > 1) &&
+            <div
+              onClick={() => setAllComments(true)}
+              style={{ paddingTop: '10px', paddingLeft: '20px', cursor: 'pointer', fontSize: '12px' }}>
+              <strong>Show more comments</strong>
+            </div>
+          }
+        </div>
+      }
+      {allComments &&
+        <div style={{ margin: '0', display: 'flex', flexDirection: 'column' }}>
+          {picture.metadata.comments.map(comment =>
+            <Comment
+              key={comment._id}
+              currentUser={currentUser}
+              comment={comment}
+              picture={picture}
+              onLike={onCommentLike}
+              onDislike={onCommentDislike}
+              setIsProfileVisible={setIsProfileVisible}
+              setUserSelected={setUserSelected}
+              deleteComment={deleteComment}
+              users={users}
+              setListVisible={setListVisible}
+            />
+          )}
+          <div
+            onClick={() => setAllComments(false)}
+            style={{ paddingTop: '10px', paddingLeft: '20px', cursor: 'pointer', fontSize: '12px' }}>
+            <strong>Hide comments</strong>
+          </div>
+        </div>
+      }
       <div style={{ marginTop: '10px', marginRight: '0', marginLeft: '0', width: '100%' }}>
         <form style={{ display: 'flex', flexDirection: 'row', maxWidth: '100vw',width: '100%', alignItems: 'center', position: 'relative' }}>
           <div
